@@ -44,7 +44,7 @@ def register():
 def inputTask():
     taskName = request.form.get("task")
     taskDescription = request.form.get("taskDescription")
-    db.tasks.insert_one({"TASK_NAME":taskName,"TASK_DESCRIPTION":taskDescription,"USER":session["username"],"MARKED_AS_DONE":"False", "Helpers":[]})
+    db.tasks.insert_one({"TASK_NAME":taskName,"TASK_DESCRIPTION":taskDescription,"USER":session["username"],"MARKED_AS_DONE":"False", "helpers":[]})
     return redirect("/home")
 
 @app.route("/delete/<taskId>")
@@ -79,9 +79,23 @@ def markAsDone(taskId):
 
 @app.route("/deleteHelper/<helperName>")
 def deleteHelper(helperName):
-    db.tasks.update_one({},{"$pull": { "helpers" : {"NAME":helperName}}})
-    return redirect("/home")
+    if helperName != '':
+        db.tasks.update_one({},{"$pull": { "helpers" : {"NAME":helperName}}})
+        return redirect("/home")
+    else:
+        flash("There was an Error: Try Again Later")
+        return redirect("/home")
 
+
+@app.route("/editPerson/<helperName>", methods = ["POST","GET"])
+def editPerson(helperName):
+    print(helperName)
+    e_name = request.form.get("fullName")
+    e_contact = request.form.get("contactInfo")
+    print(e_name,e_contact)
+    db.tasks.update_one({"helpers.NAME":helperName},{"$set": {"helpers" :[{"NAME":e_name,"CONTACT":e_contact}]}})
+    return redirect("/home")
+    
 @app.route("/logout")
 def logout():
     session.clear
